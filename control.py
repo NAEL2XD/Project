@@ -1,3 +1,6 @@
+from booleans import boolean_map
+from operators import operator_map
+
 def handle_wait(inputs, sprite_name, line_count, blocks):
     seconds = get_input_value(inputs["DURATION"], sprite_name, blocks=blocks)
     return f'wait({seconds})\n'
@@ -51,5 +54,5 @@ def get_input_or_boolean_value(input_value, sprite_name, blocks=None):
             if block["opcode"] in boolean_map:
                 return boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operator_map:
-                return operator_map[block["opcode"]](block["inputs"], blocks)
+                return operator_map[block["opcode"]](block["inputs"], {}, blocks)
     return get_input_value(input_value, sprite_name, blocks=blocks)

@@ -109,7 +109,7 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
             if block["opcode"] == "sensing_of":
                 return sensing.handle_sensing_of(block["inputs"], block["fields"], blocks, variables)
             if block["opcode"] in booleans.boolean_map:
-                return booleans.boolean_map[block["opcode"]](block["inputs"], variables, blocks)
+                return booleans.boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operators.operator_map:
                 return operators.operator_map[block["opcode"]](block["inputs"], variables, blocks)
     return get_input_value(input_value, sprite_name, blocks=blocks)

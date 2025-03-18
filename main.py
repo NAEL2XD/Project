@@ -75,7 +75,7 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "operator_gt": lambda inputs, fields: booleans.handle_gt(inputs, variables, blocks),
         "operator_lt": lambda inputs, fields: booleans.handle_lt(inputs, variables, blocks),
         "operator_equals": lambda inputs, fields: booleans.handle_equals(inputs, variables, blocks),
-        "operator_and": lambda inputs, fields: booleans.handle_and(inputs, variables, blocks),
+        "operator_and": lambda inputs, fields: operators.handle_and(inputs, variables, blocks),
         "operator_or": lambda inputs, fields: booleans.handle_or(inputs, variables, blocks),
         "operator_not": lambda inputs, fields: booleans.handle_not(inputs, variables, blocks)
     }

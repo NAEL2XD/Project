@@ -1,6 +1,44 @@
 def handle_keypressed(inputs, blocks):
-    key_option = get_input_value(inputs["KEY_OPTION"], blocks=blocks)
-    return f'keyboardPressed({key_option})'
+    key_option_id = inputs["KEY_OPTION"][1]
+    if key_option_id in blocks:
+        key_option_block = blocks[key_option_id]
+        key_option = key_option_block["fields"]["KEY_OPTION"][0]
+        key_translation_table = {
+            "UP ARROW": "UP",
+            "DOWN ARROW": "DOWN",
+            "RIGHT ARROW": "RIGHT",
+            "LEFT ARROW": "LEFT",
+            "0": "ZERO || NUMPADZERO",
+            "1": "ONE || NUMPADONE",
+            "2": "TWO || NUMPADTWO",
+            "3": "THREE || NUMPADTHREE",
+            "4": "FOUR || NUMPADFOUR",
+            "5": "FIVE || NUMPADFIVE",
+            "6": "SIX || NUMPADSIX",
+            "7": "SEVEN || NUMPADSEVEN",
+            "8": "EIGHT || NUMPADEIGHT",
+            "9": "NINE || NUMPADNINE",
+            "*": "NUMPADMULTIPLY",
+            "-": "MINUS",
+            ",": "COMMA",
+            ".": "PERIOD || NUMPADPERIOD",
+            "[": "LBRACKET",
+            "]": "RBRACKET",
+            "\\": "BACKSLASH",
+            ";": "SEMICOLON",
+            "/": "SLASH || NUMPADSLASH",
+            "'": "QUOTE"
+        }
+        
+        if key_option in key_translation_table:
+            translated_keys = key_translation_table[key_option].split(" || ")
+            if len(translated_keys) == 1:
+                return f'keyboardPressed("{translated_keys[0]}")'
+            else:
+                return ' or '.join([f'keyboardPressed("{key}")' for key in translated_keys])
+        else:
+            return f'keyboardPressed("{key_option}")'
+    return 'keyboardPressed("unknown")'
 
 def handle_mousedown(inputs, blocks):
     return 'mousePressed()'

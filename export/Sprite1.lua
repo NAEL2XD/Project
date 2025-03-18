@@ -8,7 +8,7 @@ function onCreatePost()
     makeLuaSprite('Sprite1', 'Sprite1')
     setObjectCamera('Sprite1', 'other')
     addLuaSprite('Sprite1')
-if (keyboardPressed(e)) then
-debugPrint("Sprite1:1: " .. Hello!)end
+if (keyboardPressed("ZERO") or keyboardPressed("NUMPADZERO")) then
+debugPrint("Sprite1:1: " .. "This Works!")end
 
 end

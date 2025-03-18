@@ -6,27 +6,27 @@ def handle_say(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})'
 
 def handle_sayforsecs(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
     seconds = get_input_value(inputs["SECS"], sprite_name, blocks=blocks)
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
 
 def handle_think(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})'
 
 def handle_thinkforsecs(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
     seconds = get_input_value(inputs["SECS"], sprite_name)
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
 
 def handle_changesizeby(inputs, sprite_name):
     change = get_input_value(inputs["CHANGE"], sprite_name)
@@ -115,4 +115,4 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
     return get_input_value(input_value, sprite_name, blocks=blocks)
 
 def escape_quotes(value):
-    return value.replace('"', '\\"')
+    return value if value.startswith('"') and value.endswith('"') else f'"{value}"'

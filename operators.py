@@ -1,57 +1,59 @@
 from booleans import boolean_map
 
 def handle_add(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["NUM1"], variables, blocks)
-    operand2 = get_input_value(inputs["NUM2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["NUM1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["NUM2"], variables, blocks)
     return f'({operand1} + {operand2})'
 
 def handle_subtract(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["NUM1"], variables, blocks)
-    operand2 = get_input_value(inputs["NUM2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["NUM1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["NUM2"], variables, blocks)
     return f'({operand1} - {operand2})'
 
 def handle_multiply(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["NUM1"], variables, blocks)
-    operand2 = get_input_value(inputs["NUM2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["NUM1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["NUM2"], variables, blocks)
     return f'({operand1} * {operand2})'
 
 def handle_divide(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["NUM1"], variables, blocks)
-    operand2 = get_input_value(inputs["NUM2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["NUM1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["NUM2"], variables, blocks)
     return f'({operand1} / {operand2})'
 
 def handle_equals(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["OPERAND1"], variables, blocks)
-    operand2 = get_input_value(inputs["OPERAND2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["OPERAND2"], variables, blocks)
     return f'({operand1} == {operand2})'
 
 def handle_random(inputs, variables, blocks):
-    num1 = get_input_value(inputs["FROM"], variables, blocks)
-    num2 = get_input_value(inputs["TO"], variables, blocks)
-    return f'math.random({num1}, {num2})'
+    num1 = get_input_or_number_value(inputs["FROM"], variables, blocks)
+    num2 = get_input_or_number_value(inputs["TO"], variables, blocks)
+    if "." in num1 or "." in num2:
+        return f'getRandomFloat(tonumber("{num1}"), tonumber("{num2}"))'
+    return f'getRandomInt(tonumber("{num1}"), tonumber("{num2}"))'
 
 def handle_and(inputs, variables, blocks):
-    operand1 = get_input_or_boolean_value(inputs["OPERAND1"], variables, blocks)
-    operand2 = get_input_or_boolean_value(inputs["OPERAND2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["OPERAND2"], variables, blocks)
     return f'(({operand1}) and ({operand2}))'
 
 def handle_or(inputs, variables, blocks):
-    operand1 = get_input_or_boolean_value(inputs["OPERAND1"], variables, blocks)
-    operand2 = get_input_or_boolean_value(inputs["OPERAND2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["OPERAND2"], variables, blocks)
     return f'(({operand1}) or ({operand2}))'
 
 def handle_not(inputs, variables, blocks):
-    operand = get_input_or_boolean_value(inputs["OPERAND"], variables, blocks)
+    operand = get_input_or_number_value(inputs["OPERAND"], variables, blocks)
     return f'(not ({operand}))'
 
 def handle_gt(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["OPERAND1"], variables, blocks)
-    operand2 = get_input_value(inputs["OPERAND2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["OPERAND2"], variables, blocks)
     return f'({operand1} > {operand2})'
 
 def handle_lt(inputs, variables, blocks):
-    operand1 = get_input_value(inputs["OPERAND1"], variables, blocks)
-    operand2 = get_input_value(inputs["OPERAND2"], variables, blocks)
+    operand1 = get_input_or_number_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_or_number_value(inputs["OPERAND2"], variables, blocks)
     return f'({operand1} < {operand2})'
 
 def get_input_value(input_value, variables, blocks):
@@ -69,7 +71,7 @@ def get_input_value(input_value, variables, blocks):
         return str(value)
     return "0"
 
-def get_input_or_boolean_value(input_value, variables, blocks):
+def get_input_or_number_value(input_value, variables, blocks):
     if isinstance(input_value, list) and len(input_value) > 1:
         block_id = input_value[1]
         if isinstance(block_id, str) and block_id in blocks:
@@ -78,7 +80,8 @@ def get_input_or_boolean_value(input_value, variables, blocks):
                 return boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operator_map:
                 return operator_map[block["opcode"]](block["inputs"], variables, blocks)
-    return get_input_value(input_value, variables, blocks)
+    value = get_input_value(input_value, variables, blocks)
+    return f'"{value}"' if not value.isdigit() else value
 
 operator_map = {
     "operator_add": handle_add,

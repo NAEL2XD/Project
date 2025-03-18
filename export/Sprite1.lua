@@ -8,7 +8,7 @@ function onCreatePost()
     makeLuaSprite('Sprite1', 'Sprite1')
     setObjectCamera('Sprite1', 'other')
     addLuaSprite('Sprite1')
-if (((keyboardPressed("ONE") or keyboardPressed("NUMPADONE")) and ((100 > 50)))) then
+if ((getRandomInt(tonumber("1"), tonumber("10")) == 5)) then
 debugPrint("Sprite1:1: " .. "This works!")end
 
 end

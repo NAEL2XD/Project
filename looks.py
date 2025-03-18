@@ -6,27 +6,27 @@ def handle_say(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})'
 
 def handle_sayforsecs(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
     seconds = get_input_value(inputs["SECS"], sprite_name, blocks=blocks)
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
 
 def handle_think(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})'
 
 def handle_thinkforsecs(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
     seconds = get_input_value(inputs["SECS"], sprite_name)
-    return f'debugPrint("{sprite_name}:{line_count}: " .. {escape_quotes(message)})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
+    return f'debugPrint("{sprite_name}:{line_count}: " .. {message})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
 
 def handle_changesizeby(inputs, sprite_name):
     change = get_input_value(inputs["CHANGE"], sprite_name)
@@ -84,13 +84,13 @@ def get_input_value(input_value, sprite_name, variables=None, blocks=None):
         if isinstance(value, list) and len(value) > 1:
             inner_value = value[1]
             if isinstance(inner_value, str) and variables and inner_value in variables:
-                return f'[{variables[inner_value]}]'
+                return f'{variables[inner_value]}'
             if isinstance(inner_value, str) and inner_value in blocks:
                 block = blocks[inner_value]
                 if block["opcode"] == "sensing_mousedown":
                     return "mousePressed()"
-            return booleans.convert_to_number_if_needed(str(inner_value))
-        return booleans.convert_to_number_if_needed(str(value))
+            return str(inner_value)
+        return str(value)
     return "0"
 
 def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, variables):
@@ -108,11 +108,16 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
                 return sensing.handle_distanceto(block["inputs"], sprite_name, blocks)
             if block["opcode"] == "sensing_of":
                 return sensing.handle_sensing_of(block["inputs"], block["fields"], blocks, variables)
+            if block["opcode"] == "operator_random":
+                return operators.handle_random(block["inputs"], variables, blocks)
             if block["opcode"] in booleans.boolean_map:
                 return booleans.boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operators.operator_map:
                 return operators.operator_map[block["opcode"]](block["inputs"], variables, blocks)
-    return get_input_value(input_value, sprite_name, blocks=blocks)
+    value = get_input_value(input_value, sprite_name, blocks=blocks)
+    return f'"{escape_quotes(value)}"'
 
 def escape_quotes(value):
-    return value if value.startswith('"') and value.endswith('"') else f'"{value}"'
+    if isinstance(value, str):
+        value = value.replace('"', '\\"')
+    return value

@@ -33,7 +33,26 @@ def handle_random(inputs, variables, blocks):
 def handle_and(inputs, variables, blocks):
     operand1 = get_input_or_boolean_value(inputs["OPERAND1"], variables, blocks)
     operand2 = get_input_or_boolean_value(inputs["OPERAND2"], variables, blocks)
-    return f'({operand1} and {operand2})'
+    return f'(({operand1}) and ({operand2}))'
+
+def handle_or(inputs, variables, blocks):
+    operand1 = get_input_or_boolean_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_or_boolean_value(inputs["OPERAND2"], variables, blocks)
+    return f'(({operand1}) or ({operand2}))'
+
+def handle_not(inputs, variables, blocks):
+    operand = get_input_or_boolean_value(inputs["OPERAND"], variables, blocks)
+    return f'(not ({operand}))'
+
+def handle_gt(inputs, variables, blocks):
+    operand1 = get_input_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_value(inputs["OPERAND2"], variables, blocks)
+    return f'({operand1} > {operand2})'
+
+def handle_lt(inputs, variables, blocks):
+    operand1 = get_input_value(inputs["OPERAND1"], variables, blocks)
+    operand2 = get_input_value(inputs["OPERAND2"], variables, blocks)
+    return f'({operand1} < {operand2})'
 
 def get_input_value(input_value, variables, blocks):
     if isinstance(input_value, list) and len(input_value) > 1:
@@ -68,5 +87,9 @@ operator_map = {
     "operator_divide": handle_divide,
     "operator_equals": handle_equals,
     "operator_random": handle_random,
-    "operator_and": handle_and
+    "operator_and": handle_and,
+    "operator_or": handle_or,
+    "operator_not": handle_not,
+    "operator_gt": handle_gt,
+    "operator_lt": handle_lt
 }

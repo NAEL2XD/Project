@@ -49,7 +49,7 @@ def handle_touchingobject(inputs, sprite_name, blocks):
 
 def handle_distanceto(inputs, sprite_name, blocks):
     object_name = get_input_value(inputs["DISTANCETOMENU"], blocks=blocks)
-    return f'distanceTo({sprite_name}, {object_name})'
+    return f'math.abs((({{if mouse: getMouseX("other"), else: getProperty("{object_name}.x")}} - getProperty("{sprite_name}.x")) + ({{if mouse: getMouseY("other"), else: getProperty("{object_name}.y")}} - getProperty("{sprite_name}.y"))))'
 
 def handle_sensing_of(inputs, fields, blocks, variables):
     property_name = fields["PROPERTY"][0]

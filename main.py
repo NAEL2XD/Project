@@ -72,12 +72,16 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "operator_multiply": lambda inputs, fields: operators.handle_multiply(inputs, variables, blocks),
         "operator_divide": lambda inputs, fields: operators.handle_divide(inputs, variables, blocks),
         "operator_random": lambda inputs, fields: operators.handle_random(inputs, variables, blocks),
-        "operator_gt": lambda inputs, fields: booleans.handle_gt(inputs, variables, blocks),
-        "operator_lt": lambda inputs, fields: booleans.handle_lt(inputs, variables, blocks),
-        "operator_equals": lambda inputs, fields: booleans.handle_equals(inputs, variables, blocks),
+        "operator_gt": lambda inputs, fields: operators.handle_gt(inputs, variables, blocks),
+        "operator_lt": lambda inputs, fields: operators.handle_lt(inputs, variables, blocks),
+        "operator_equals": lambda inputs, fields: operators.handle_equals(inputs, variables, blocks),
         "operator_and": lambda inputs, fields: operators.handle_and(inputs, variables, blocks),
         "operator_or": lambda inputs, fields: operators.handle_or(inputs, variables, blocks),
-        "operator_not": lambda inputs, fields: operators.handle_not(inputs, variables, blocks)
+        "operator_not": lambda inputs, fields: operators.handle_not(inputs, variables, blocks),
+        "operator_join": lambda inputs, fields: operators.handle_join(inputs, variables, blocks),
+        "operator_letter_of": lambda inputs, fields: operators.handle_letter_of(inputs, variables, blocks),
+        "operator_length": lambda inputs, fields: operators.handle_length_of(inputs, variables, blocks),
+        "operator_contains": lambda inputs, fields: operators.handle_contains(inputs, variables, blocks)
     }
 
     def process_block(block_id, target_code):

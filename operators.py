@@ -56,6 +56,25 @@ def handle_lt(inputs, variables, blocks):
     operand2 = get_input_or_number_value(inputs["OPERAND2"], variables, blocks)
     return f'({operand1} < {operand2})'
 
+def handle_join(inputs, variables, blocks):
+    string1 = get_input_or_number_value(inputs["STRING1"], variables, blocks)
+    string2 = get_input_or_number_value(inputs["STRING2"], variables, blocks)
+    return f'({string1} .. {string2})'
+
+def handle_letter_of(inputs, variables, blocks):
+    letter_index = get_input_or_number_value(inputs["LETTER"], variables, blocks)
+    string_value = get_input_or_number_value(inputs["STRING"], variables, blocks)
+    return f'string.sub({string_value}, tonumber({letter_index}), tonumber({letter_index}))'
+
+def handle_length_of(inputs, variables, blocks):
+    string_value = get_input_or_number_value(inputs["STRING"], variables, blocks)
+    return f'#{string_value}'
+
+def handle_contains(inputs, variables, blocks):
+    string1 = get_input_or_number_value(inputs["STRING1"], variables, blocks)
+    string2 = get_input_or_number_value(inputs["STRING2"], variables, blocks)
+    return f'string.find({string1}, {string2}) and true or false'
+
 def get_input_value(input_value, variables, blocks):
     if isinstance(input_value, list) and len(input_value) > 1:
         value = input_value[1]
@@ -94,5 +113,9 @@ operator_map = {
     "operator_or": handle_or,
     "operator_not": handle_not,
     "operator_gt": handle_gt,
-    "operator_lt": handle_lt
+    "operator_lt": handle_lt,
+    "operator_join": handle_join,
+    "operator_letter_of": handle_letter_of,
+    "operator_length": handle_length_of,
+    "operator_contains": handle_contains
 }

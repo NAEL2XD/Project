@@ -110,6 +110,14 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
                 return sensing.handle_sensing_of(block["inputs"], block["fields"], blocks, variables)
             if block["opcode"] == "operator_random":
                 return operators.handle_random(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_join":
+                return operators.handle_join(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_letter_of":
+                return operators.handle_letter_of(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_length":
+                return operators.handle_length_of(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_contains":
+                return operators.handle_contains(block["inputs"], variables, blocks)
             if block["opcode"] in booleans.boolean_map:
                 return booleans.boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operators.operator_map:

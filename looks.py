@@ -12,7 +12,7 @@ def handle_sayforsecs(inputs, sprite_name, line_count, blocks, includes, variabl
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
-    seconds = get_input_value(inputs["SECS"], sprite_name, blocks=blocks)
+    seconds = get_input_value(inputs["SECS"], sprite_name, blocks=blocks, variables=variables)
     return f'debugPrint("{sprite_name}:{line_count}: " .. {message})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
 
 def handle_think(inputs, sprite_name, line_count, blocks, includes, variables):
@@ -25,7 +25,7 @@ def handle_thinkforsecs(inputs, sprite_name, line_count, blocks, includes, varia
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
-    seconds = get_input_value(inputs["SECS"], sprite_name)
+    seconds = get_input_value(inputs["SECS"], sprite_name, blocks=blocks, variables=variables)
     return f'debugPrint("{sprite_name}:{line_count}: " .. {message})\nwait({seconds})\ndebugPrint("{sprite_name}:{line_count}: ")'
 
 def handle_changesizeby(inputs, sprite_name):
@@ -89,8 +89,8 @@ def get_input_value(input_value, sprite_name, variables=None, blocks=None):
                 block = blocks[inner_value]
                 if block["opcode"] == "sensing_mousedown":
                     return "mousePressed()"
-                elif block["opcode"] in operators.operator_map:
-                    return operators.operator_map[block["opcode"]](block["inputs"], block["fields"], variables, blocks)
+                if block["opcode"] in operators.operator_map:
+                    return operators.operator_map[block["opcode"]](block["inputs"], variables, blocks, sprite_name)
             return str(inner_value)
         return str(value)
     return "0"
@@ -111,20 +111,20 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
             if block["opcode"] == "sensing_of":
                 return sensing.handle_sensing_of(block["inputs"], block["fields"], blocks, variables)
             if block["opcode"] == "operator_random":
-                return operators.handle_random(block["inputs"], variables, blocks)
+                return operators.handle_random(block["inputs"], variables, blocks, sprite_name)
             if block["opcode"] == "operator_join":
-                return operators.handle_join(block["inputs"], variables, blocks)
+                return operators.handle_join(block["inputs"], variables, blocks, sprite_name)
             if block["opcode"] == "operator_mod":
-                return operators.handle_mod(block["inputs"], variables, blocks)
+                return operators.handle_mod(block["inputs"], variables, blocks, sprite_name)
             if block["opcode"] == "operator_round":
-                return operators.handle_round(block["inputs"], variables, blocks)
+                return operators.handle_round(block["inputs"], variables, blocks, sprite_name)
             if block["opcode"] == "operator_mathop":
-                return operators.handle_mathop(block["inputs"], block["fields"], variables, blocks)
+                return operators.handle_mathop(block["inputs"], block["fields"], variables, blocks, sprite_name)
             if block["opcode"] in booleans.boolean_map:
                 return booleans.boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operators.operator_map:
-                return operators.operator_map[block["opcode"]](block["inputs"], variables, blocks)
-    value = get_input_value(input_value, sprite_name, blocks=blocks)
+                return operators.operator_map[block["opcode"]](block["inputs"], variables, blocks, sprite_name)
+    value = get_input_value(input_value, sprite_name, blocks=blocks, variables=variables)
     return f'"{escape_quotes(value)}"'
 
 def escape_quotes(value):

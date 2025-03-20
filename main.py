@@ -38,9 +38,9 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
 
     block_map = {
         "event_whenflagclicked": lambda inputs, fields: "",
-        "motion_movesteps": lambda inputs, fields: f'setProperty("{sprite_name}.x", getProperty("{sprite_name}.x") + {motion.get_input_value(inputs["STEPS"], variables, blocks)})' if 'STEPS' in inputs else f'setProperty("{sprite_name}.x", getProperty("{sprite_name}.x") + 0)',
-        "motion_turnright": lambda inputs, fields: f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") + {motion.get_input_value(inputs["DEGREES"], variables, blocks)})' if 'DEGREES' in inputs else f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") + 0)',
-        "motion_turnleft": lambda inputs, fields: f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") - {motion.get_input_value(inputs["DEGREES"], variables, blocks)})' if 'DEGREES' in inputs else f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") - 0)',
+        "motion_movesteps": lambda inputs, fields: f'setProperty("{sprite_name}.x", getProperty("{sprite_name}.x") + {operators.get_input_or_number_value(inputs["STEPS"], variables, blocks, sprite_name)})' if 'STEPS' in inputs else f'setProperty("{sprite_name}.x", getProperty("{sprite_name}.x") + 0)',
+        "motion_turnright": lambda inputs, fields: f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") + {operators.get_input_or_number_value(inputs["DEGREES"], variables, blocks, sprite_name)})' if 'DEGREES' in inputs else f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") + 0)',
+        "motion_turnleft": lambda inputs, fields: f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") - {operators.get_input_or_number_value(inputs["DEGREES"], variables, blocks, sprite_name)})' if 'DEGREES' in inputs else f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") - 0)',
         "motion_xposition": lambda inputs, fields: f'getProperty("{sprite_name}.x")',
         "motion_yposition": lambda inputs, fields: f'getProperty("{sprite_name}.y")',
         "motion_goto": lambda inputs, fields: motion.handle_goto(inputs, sprite_name, variables, blocks),
@@ -79,21 +79,21 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "sensing_mousey": lambda inputs, fields: sensing.handle_mousey(inputs, sprite_name, blocks),
         "sensing_of": lambda inputs, fields: sensing.handle_sensing_of(inputs, fields, blocks, variables),
         "sensing_of_object_menu": lambda inputs, fields: sensing.handle_sensing_of_object_menu(inputs, fields, blocks, variables),
-        "operator_add": lambda inputs, fields: operators.handle_add(inputs, variables, blocks),
-        "operator_subtract": lambda inputs, fields: operators.handle_subtract(inputs, variables, blocks),
-        "operator_multiply": lambda inputs, fields: operators.handle_multiply(inputs, variables, blocks),
-        "operator_divide": lambda inputs, fields: operators.handle_divide(inputs, variables, blocks),
-        "operator_random": lambda inputs, fields: operators.handle_random(inputs, variables, blocks),
-        "operator_gt": lambda inputs, fields: operators.handle_gt(inputs, variables, blocks),
-        "operator_lt": lambda inputs, fields: operators.handle_lt(inputs, variables, blocks),
-        "operator_equals": lambda inputs, fields: operators.handle_equals(inputs, variables, blocks),
-        "operator_and": lambda inputs, fields: operators.handle_and(inputs, variables, blocks),
-        "operator_or": lambda inputs, fields: operators.handle_or(inputs, variables, blocks),
-        "operator_not": lambda inputs, fields: operators.handle_not(inputs, variables, blocks),
-        "operator_join": lambda inputs, fields: operators.handle_join(inputs, variables, blocks),
-        "operator_mod": lambda inputs, fields: operators.handle_mod(inputs, variables, blocks),
-        "operator_round": lambda inputs, fields: operators.handle_round(inputs, variables, blocks),
-        "operator_mathop": lambda inputs, fields: operators.handle_mathop(inputs, fields, variables, blocks)
+        "operator_add": lambda inputs, fields: operators.handle_add(inputs, variables, blocks, sprite_name),
+        "operator_subtract": lambda inputs, fields: operators.handle_subtract(inputs, variables, blocks, sprite_name),
+        "operator_multiply": lambda inputs, fields: operators.handle_multiply(inputs, variables, blocks, sprite_name),
+        "operator_divide": lambda inputs, fields: operators.handle_divide(inputs, variables, blocks, sprite_name),
+        "operator_random": lambda inputs, fields: operators.handle_random(inputs, variables, blocks, sprite_name),
+        "operator_gt": lambda inputs, fields: operators.handle_gt(inputs, variables, blocks, sprite_name),
+        "operator_lt": lambda inputs, fields: operators.handle_lt(inputs, variables, blocks, sprite_name),
+        "operator_equals": lambda inputs, fields: operators.handle_equals(inputs, variables, blocks, sprite_name),
+        "operator_and": lambda inputs, fields: operators.handle_and(inputs, variables, blocks, sprite_name),
+        "operator_or": lambda inputs, fields: operators.handle_or(inputs, variables, blocks, sprite_name),
+        "operator_not": lambda inputs, fields: operators.handle_not(inputs, variables, blocks, sprite_name),
+        "operator_join": lambda inputs, fields: operators.handle_join(inputs, variables, blocks, sprite_name),
+        "operator_mod": lambda inputs, fields: operators.handle_mod(inputs, variables, blocks, sprite_name),
+        "operator_round": lambda inputs, fields: operators.handle_round(inputs, variables, blocks, sprite_name),
+        "operator_mathop": lambda inputs, fields: operators.handle_mathop(inputs, fields, variables, blocks, sprite_name)
     }
 
     def process_block(block_id, target_code):
@@ -187,7 +187,6 @@ def convert_project_to_lua(project_path):
 
             lua_code = "\n".join(lua_scripts)
             with open(f"{EXPORT_FOLDER}/{sprite_name}.lua", "w") as lua_file:
-                print(lua_code)
                 lua_file.write(lua_code)
 
 # Example usage

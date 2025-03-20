@@ -8,6 +8,9 @@ import booleans
 import os
 import shutil
 from traceback import format_exc
+import zipfile
+from tkinter import Tk, filedialog
+import re
 
 EXPORT_FOLDER = "export"
 
@@ -15,6 +18,25 @@ def setup_export_folder():
     if os.path.exists(EXPORT_FOLDER):
         shutil.rmtree(EXPORT_FOLDER)
     os.makedirs(EXPORT_FOLDER)
+
+def prompt_for_sb3_file():
+    Tk().withdraw()  # Hide the root window
+    file_path = filedialog.askopenfilename(
+        filetypes=[("Scratch 3.0 Project", "*.sb3")],
+        title="Select a Scratch 3.0 Project (.sb3)"
+    )
+    if not file_path:
+        print("No file selected. Exiting...")
+        exit()
+    return file_path
+
+def extract_sb3_file(file_path, extract_to="extracted_sb3"):
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+    return os.path.join(extract_to, "project.json")
+
+def sanitize_variable_name(var_name):
+    return re.sub(r'\W|^(?=\d)', '_', var_name)
 
 def convert_blocks_to_lua(blocks, variables, sprite_name):
     lua_code = []
@@ -93,7 +115,9 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "operator_join": lambda inputs, fields: operators.handle_join(inputs, variables, blocks, sprite_name),
         "operator_mod": lambda inputs, fields: operators.handle_mod(inputs, variables, blocks, sprite_name),
         "operator_round": lambda inputs, fields: operators.handle_round(inputs, variables, blocks, sprite_name),
-        "operator_mathop": lambda inputs, fields: operators.handle_mathop(inputs, fields, variables, blocks, sprite_name)
+        "operator_mathop": lambda inputs, fields: operators.handle_mathop(inputs, fields, variables, blocks, sprite_name),
+        "data_setvariableto": lambda inputs, fields: handle_setvariableto(inputs, fields, sprite_name, variables, blocks),
+        "data_changevariableby": lambda inputs, fields: handle_changevariableby(inputs, fields, sprite_name, variables, blocks)
     }
 
     def process_block(block_id, target_code):
@@ -132,6 +156,35 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         
         if block.get("next"):
             process_block(block["next"], target_code)
+
+    def handle_setvariableto(inputs, fields, sprite_name, variables, blocks):
+        variable_name = sanitize_variable_name(fields["VARIABLE"][0])
+        print(len(inputs["VALUE"]))
+        if len(inputs["VALUE"]) == 3:
+            if len(inputs["VALUE"][1]) == 3:
+                value = f'{sprite_name}.{variable_name}'
+            else:
+                value = operators.get_input_or_number_value(inputs["VALUE"], variables, blocks, sprite_name)
+            return f'{sprite_name}.{variable_name} = {value}'
+        else:
+            value = inputs["VALUE"][1]
+            if isinstance(value, list):
+                return f'{sprite_name}.{variable_name} = {value[1]}'
+            return f'{sprite_name}.{variable_name} = "{value}"'
+
+    def handle_changevariableby(inputs, fields, sprite_name, variables, blocks):
+        variable_name = sanitize_variable_name(fields["VARIABLE"][0])
+        if len(inputs["VALUE"]) == 3:
+            if len(inputs["VALUE"][1]) == 3:
+                value = f'{sprite_name}.{variable_name}'
+            else:
+                value = operators.get_input_or_number_value(inputs["VALUE"], variables, blocks, sprite_name)
+            return f'{sprite_name}.{variable_name} = {sprite_name}.{variable_name} + tonumber({value})'
+        else:
+            value = inputs["VALUE"][1]
+            if isinstance(value, list):
+                return f'{sprite_name}.{variable_name} = {sprite_name}.{variable_name} + {value[1]}'
+            return f'{sprite_name}.{variable_name} = {sprite_name}.{variable_name} + {value}'
 
     # Check for top-level blocks and process them
     has_green_flag = False
@@ -180,15 +233,25 @@ def convert_project_to_lua(project_path):
             
             # Initialize variables
             variables = {var_id: var_data[0] for var_id, var_data in target["variables"].items()}
+            lua_scripts.append(f'local {sprite_name} = {{')
             for var_name, var_value in variables.items():
-                lua_scripts.append(f'{sprite_name}.{var_value} = 0')  # Assuming initial value is 0
-                
+                sanitized_var_name = sanitize_variable_name(var_value)
+                lua_scripts.append(f'    {sanitized_var_name} = 0,')
+            lua_scripts.append('}\n')
+            
+            # Handle sprite name with folder structure
+            sprite_name_path = sprite_name.replace("//", "/")
+            script_path = os.path.join(EXPORT_FOLDER, f"{sprite_name_path}.lua")
+            os.makedirs(os.path.dirname(script_path), exist_ok=True)
+
             lua_scripts.append(convert_blocks_to_lua(target["blocks"], variables, sprite_name))
 
             lua_code = "\n".join(lua_scripts)
-            with open(f"{EXPORT_FOLDER}/{sprite_name}.lua", "w") as lua_file:
+            with open(script_path, "w") as lua_file:
                 lua_file.write(lua_code)
 
-# Example usage
-project_path = 'project.json'
-convert_project_to_lua(project_path)
+if __name__ == "__main__":
+    sb3_file_path = prompt_for_sb3_file()
+    project_json_path = extract_sb3_file(sb3_file_path)
+    convert_project_to_lua(project_json_path)
+    shutil.rmtree(os.path.dirname(project_json_path))  # Remove the extracted_sb3 directory

@@ -1,4 +1,9 @@
 -- Sprite: Sprite1
+local Sprite1 = {
+    myVar = 0,
+    testing_var = 0,
+}
+
 function onCreatePost()
     makeLuaSprite('stage')
     makeGraphic('stage', 1920, 1080, 'FFFFFF')
@@ -8,37 +13,10 @@ function onCreatePost()
     makeLuaSprite('Sprite1', 'Sprite1')
     setObjectCamera('Sprite1', 'other')
     addLuaSprite('Sprite1')
-debugPrint("Sprite1:1: " .. tonumber(5) % tonumber(3))
-debugPrint("Sprite1:2: " .. tonumber(getProperty("Sprite1.x")) % tonumber(getProperty("Sprite1.y")))
-debugPrint("Sprite1:3: " .. math.floor(tonumber("1.5")))
-debugPrint("Sprite1:4: " .. math.floor(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:5: " .. math.abs(tonumber("-5")))
-debugPrint("Sprite1:6: " .. math.abs(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:7: " .. math.floor(tonumber("-5")))
-debugPrint("Sprite1:8: " .. math.floor(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:9: " .. math.ceil(tonumber("-5")))
-debugPrint("Sprite1:10: " .. math.ceil(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:11: " .. math.sqrt(tonumber("-5")))
-debugPrint("Sprite1:12: " .. math.sqrt(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:13: " .. math.sin(tonumber("-5")))
-debugPrint("Sprite1:14: " .. math.sin(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:15: " .. math.cos(tonumber("-5")))
-debugPrint("Sprite1:16: " .. math.cos(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:17: " .. math.tan(tonumber("-5")))
-debugPrint("Sprite1:18: " .. math.tan(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:19: " .. math.asin(tonumber("-5")))
-debugPrint("Sprite1:20: " .. math.asin(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:21: " .. math.acos(tonumber("-5")))
-debugPrint("Sprite1:22: " .. math.acos(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:23: " .. math.atan(tonumber("-5")))
-debugPrint("Sprite1:24: " .. math.atan(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:25: " .. "-5" --[["LN" are not supported at this moment, check back later.]])
-debugPrint("Sprite1:26: " .. getProperty("Sprite1.x") --[["LN" are not supported at this moment, check back later.]])
-debugPrint("Sprite1:27: " .. math.log(tonumber("-5")))
-debugPrint("Sprite1:28: " .. math.log(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:29: " .. math.exp(tonumber("-5")))
-debugPrint("Sprite1:30: " .. math.exp(tonumber(getProperty("Sprite1.x"))))
-debugPrint("Sprite1:31: " .. tonumber("-5")^10)
-debugPrint("Sprite1:32: " .. tonumber(getProperty("Sprite1.x"))^10)
-
+    Sprite1.myVar = 5
+    Sprite1.myVar = getProperty("Sprite1.x")
+    Sprite1.myVar = Sprite1.myVar
+    Sprite1.testing_var = Sprite1.testing_var + 3
+    Sprite1.testing_var = Sprite1.testing_var + tonumber(getProperty("Sprite1.y"))
+    Sprite1.testing_var = Sprite1.testing_var + tonumber(Sprite1.testing_var)
 end

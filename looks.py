@@ -43,6 +43,10 @@ def handle_changeeffectby(inputs, fields, sprite_name, variables, blocks):
     elif effect == "color":
         effect = "hue"
     change = get_input_value(inputs["CHANGE"], sprite_name, variables, blocks)
+    if effect == "alpha":
+        current_value = f'getProperty("{sprite_name}.{effect}")'
+        new_value = f'1 - (0.01 * ({current_value} + {change}))'
+        return f'setProperty("{sprite_name}.{effect}", {new_value})'
     return f'setProperty("{sprite_name}.{effect}", getProperty("{sprite_name}.{effect}") + {change})'
 
 def handle_seteffectto(inputs, fields, sprite_name, variables, blocks):
@@ -52,6 +56,9 @@ def handle_seteffectto(inputs, fields, sprite_name, variables, blocks):
     elif effect == "color":
         effect = "hue"
     value = get_input_value(inputs["VALUE"], sprite_name, variables, blocks)
+    if effect == "alpha":
+        new_value = f'1 - (0.01 * {value})'
+        return f'setProperty("{sprite_name}.{effect}", {new_value})'
     return f'setProperty("{sprite_name}.{effect}", {value})'
 
 def handle_show(sprite_name):

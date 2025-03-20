@@ -23,14 +23,26 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
     wait_function_added = False
     includes = set()
     processed_blocks = set()
+    on_create_post_code = []
+    on_create_post_header = f"""function onCreatePost()
+    makeLuaSprite('stage')
+    makeGraphic('stage', 1920, 1080, 'FFFFFF')
+    setObjectCamera('stage', 'other')
+    addLuaSprite('stage')
+
+    makeLuaSprite('{sprite_name}', '{sprite_name}')
+    setObjectCamera('{sprite_name}', 'other')
+    addLuaSprite('{sprite_name}')
+"""
+    on_create_post_footer = "\nend\n"
 
     block_map = {
-        "event_whenflagclicked": "function onCreatePost()\n    makeLuaSprite('stage')\n    makeGraphic('stage', 1920, 1080, 'FFFFFF')\n    setObjectCamera('stage', 'other')\n    addLuaSprite('stage')\n\n    makeLuaSprite('{sprite_name}', '{sprite_name}')\n    setObjectCamera('{sprite_name}', 'other')\n    addLuaSprite('{sprite_name}')",
-        "motion_movesteps": lambda inputs, fields: f"setProperty(\"{sprite_name}.x\", getProperty(\"{sprite_name}.x\") + {motion.get_input_value(inputs['STEPS'], variables, blocks)})" if 'STEPS' in inputs else f"setProperty(\"{sprite_name}.x\", getProperty(\"{sprite_name}.x\") + 0)",
-        "motion_turnright": lambda inputs, fields: f"setProperty(\"{sprite_name}.angle\", getProperty(\"{sprite_name}.angle\") + {motion.get_input_value(inputs['DEGREES'], variables, blocks)})" if 'DEGREES' in inputs else f"setProperty(\"{sprite_name}.angle\", getProperty(\"{sprite_name}.angle\") + 0)",
-        "motion_turnleft": lambda inputs, fields: f"setProperty(\"{sprite_name}.angle\", getProperty(\"{sprite_name}.angle\") - {motion.get_input_value(inputs['DEGREES'], variables, blocks)})" if 'DEGREES' in inputs else f"setProperty(\"{sprite_name}.angle\", getProperty(\"{sprite_name}.angle\") - 0)",
-        "motion_xposition": lambda inputs, fields: f"getProperty(\"{sprite_name}.x\")",
-        "motion_yposition": lambda inputs, fields: f"getProperty(\"{sprite_name}.y\")",
+        "event_whenflagclicked": lambda inputs, fields: "",
+        "motion_movesteps": lambda inputs, fields: f'setProperty("{sprite_name}.x", getProperty("{sprite_name}.x") + {motion.get_input_value(inputs["STEPS"], variables, blocks)})' if 'STEPS' in inputs else f'setProperty("{sprite_name}.x", getProperty("{sprite_name}.x") + 0)',
+        "motion_turnright": lambda inputs, fields: f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") + {motion.get_input_value(inputs["DEGREES"], variables, blocks)})' if 'DEGREES' in inputs else f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") + 0)',
+        "motion_turnleft": lambda inputs, fields: f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") - {motion.get_input_value(inputs["DEGREES"], variables, blocks)})' if 'DEGREES' in inputs else f'setProperty("{sprite_name}.angle", getProperty("{sprite_name}.angle") - 0)',
+        "motion_xposition": lambda inputs, fields: f'getProperty("{sprite_name}.x")',
+        "motion_yposition": lambda inputs, fields: f'getProperty("{sprite_name}.y")',
         "motion_goto": lambda inputs, fields: motion.handle_goto(inputs, sprite_name, variables, blocks),
         "motion_gotoxy": lambda inputs, fields: motion.handle_gotoxy(inputs, sprite_name, variables, blocks),
         "motion_glideto": lambda inputs, fields: motion.handle_glideto(inputs, sprite_name, variables, blocks, line_count),
@@ -41,7 +53,7 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "motion_setx": lambda inputs, fields: motion.handle_setx(inputs, sprite_name, variables, blocks),
         "motion_changeyby": lambda inputs, fields: motion.handle_changeyby(inputs, sprite_name, variables, blocks),
         "motion_sety": lambda inputs, fields: motion.handle_sety(inputs, sprite_name, variables, blocks),
-        "motion_direction": lambda inputs, fields: f"getProperty(\"{sprite_name}.angle\")",
+        "motion_direction": lambda inputs, fields: f'getProperty("{sprite_name}.angle")',
         "looks_say": lambda inputs, fields: looks.handle_say(inputs, sprite_name, line_count, blocks, includes, variables),
         "looks_sayforsecs": lambda inputs, fields: looks.handle_sayforsecs(inputs, sprite_name, line_count, blocks, includes, variables),
         "looks_think": lambda inputs, fields: looks.handle_think(inputs, sprite_name, line_count, blocks, includes, variables),
@@ -79,9 +91,9 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "operator_or": lambda inputs, fields: operators.handle_or(inputs, variables, blocks),
         "operator_not": lambda inputs, fields: operators.handle_not(inputs, variables, blocks),
         "operator_join": lambda inputs, fields: operators.handle_join(inputs, variables, blocks),
-        "operator_letter_of": lambda inputs, fields: operators.handle_letter_of(inputs, variables, blocks),
-        "operator_length": lambda inputs, fields: operators.handle_length_of(inputs, variables, blocks),
-        "operator_contains": lambda inputs, fields: operators.handle_contains(inputs, variables, blocks)
+        "operator_mod": lambda inputs, fields: operators.handle_mod(inputs, variables, blocks),
+        "operator_round": lambda inputs, fields: operators.handle_round(inputs, variables, blocks),
+        "operator_mathop": lambda inputs, fields: operators.handle_mathop(inputs, fields, variables, blocks)
     }
 
     def process_block(block_id, target_code):
@@ -93,7 +105,7 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         block = blocks[block_id]
         opcode = block["opcode"]
         if opcode == "control_wait" and not wait_function_added:
-            lua_code.append('function wait(n) if n>0 then os.execute("ping -n "..tonumber(n+1).." localhost > NUL") end end')
+            lua_code.append('function wait(n) if n>0 then os.execute("ping -n "..tonumber(n+1).." localhost > NUL") end end\n')
             wait_function_added = True
         
         if opcode in block_map:
@@ -104,16 +116,18 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
                     else:
                         result = block_map[opcode](block["inputs"], {})
                     
-                    if opcode == "control_forever":
+                    if opcode == "event_whenflagclicked":
+                        on_create_post_code.append(result)
+                    elif opcode == "control_forever":
                         on_update_code.append(result)
                     else:
-                        target_code.append(result)
+                        target_code.append(result + "\n")
                     
                     line_count += 1
                 except Exception as e:
-                    target_code.append(f"--[[Error processing block {block_id}:\n{str(format_exc())}]]")
+                    target_code.append(f"--[[Error processing block {block_id}:\n{str(format_exc())}]]\n")
             else:
-                target_code.append(block_map[opcode])
+                target_code.append(block_map[opcode] + "\n")
                 line_count += 1
         
         if block.get("next"):
@@ -125,14 +139,16 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         if block["topLevel"]:
             if block["opcode"] == "event_whenflagclicked":
                 has_green_flag = True
-            process_block(block_id, lua_code)
-            lua_code.append("end\n")  # Close function
+            process_block(block_id, on_create_post_code)
+
+    if on_create_post_code:
+        on_create_post_code.append(on_create_post_footer)
 
     if on_update_code:
-        lua_code.append("function onUpdate(elapsed)\n" + "\n".join(on_update_code) + "\nend")
+        lua_code.append("function onUpdate(elapsed)\n" + "\n".join(on_update_code) + "\nend\n")
 
     if not has_green_flag:
-        lua_code.append("-- No green flag clicked function! Make sure it has it!")
+        lua_code.append("-- No green flag clicked function! Make sure it has it!\n")
 
     # Add includes
     includes_code = ""
@@ -149,7 +165,7 @@ function mouseOverlaps(tag)
 end
 """
 
-    return includes_code + "\n".join(lua_code).replace("{sprite_name}", sprite_name)
+    return includes_code + on_create_post_header + "".join(on_create_post_code) + "\n".join(lua_code).replace("{sprite_name}", sprite_name)
 
 def convert_project_to_lua(project_path):
     setup_export_folder()
@@ -171,6 +187,7 @@ def convert_project_to_lua(project_path):
 
             lua_code = "\n".join(lua_scripts)
             with open(f"{EXPORT_FOLDER}/{sprite_name}.lua", "w") as lua_file:
+                print(lua_code)
                 lua_file.write(lua_code)
 
 # Example usage

@@ -61,19 +61,48 @@ def handle_join(inputs, variables, blocks):
     string2 = get_input_or_number_value(inputs["STRING2"], variables, blocks)
     return f'({string1} .. {string2})'
 
-def handle_letter_of(inputs, variables, blocks):
-    letter_index = get_input_or_number_value(inputs["LETTER"], variables, blocks)
-    string_value = get_input_or_number_value(inputs["STRING"], variables, blocks)
-    return f'string.sub({string_value}, tonumber({letter_index}), tonumber({letter_index}))'
+def handle_mod(inputs, variables, blocks):
+    num1 = get_input_or_number_value(inputs["NUM1"], variables, blocks)
+    num2 = get_input_or_number_value(inputs["NUM2"], variables, blocks)
+    return f'tonumber("{num1}") % tonumber("{num2}")'
 
-def handle_length_of(inputs, variables, blocks):
-    string_value = get_input_or_number_value(inputs["STRING"], variables, blocks)
-    return f'#{string_value}'
+def handle_round(inputs, variables, blocks):
+    num = get_input_or_number_value(inputs["NUM"], variables, blocks)
+    return f'math.floor(tonumber("{num}"))'
 
-def handle_contains(inputs, variables, blocks):
-    string1 = get_input_or_number_value(inputs["STRING1"], variables, blocks)
-    string2 = get_input_or_number_value(inputs["STRING2"], variables, blocks)
-    return f'string.find({string1}, {string2}) and true or false'
+def handle_mathop(inputs, fields, variables, blocks):
+    num = get_input_or_number_value(inputs["NUM"], variables, blocks)
+    operator = fields["OPERATOR"][0]
+    if operator == "abs":
+        return f'math.abs(tonumber("{num}"))'
+    elif operator == "floor":
+        return f'math.floor(tonumber("{num}"))'
+    elif operator == "ceiling":
+        return f'math.ceil(tonumber("{num}"))'
+    elif operator == "sqrt":
+        return f'math.sqrt(tonumber("{num}"))'
+    elif operator == "sin":
+        return f'math.sin(tonumber("{num}"))'
+    elif operator == "cos":
+        return f'math.cos(tonumber("{num}"))'
+    elif operator == "tan":
+        return f'math.tan(tonumber("{num}"))'
+    elif operator == "asin":
+        return f'math.asin(tonumber("{num}"))'
+    elif operator == "acos":
+        return f'math.acos(tonumber("{num}"))'
+    elif operator == "atan":
+        return f'math.atan(tonumber("{num}"))'
+    elif operator == "ln":
+        return f'{num} --[["LN" are not supported at this moment, check back later.]]'
+    elif operator == "log":
+        return f'math.log(tonumber("{num}"))'
+    elif operator == "e ^":
+        return f'math.exp(tonumber("{num}"))'
+    elif operator == "10 ^":
+        return f'tonumber("{num}")^10'
+    else:
+        return f'--[[Unknown operator: {operator}]]'
 
 def get_input_value(input_value, variables, blocks):
     if isinstance(input_value, list) and len(input_value) > 1:
@@ -100,7 +129,7 @@ def get_input_or_number_value(input_value, variables, blocks):
             if block["opcode"] in operator_map:
                 return operator_map[block["opcode"]](block["inputs"], variables, blocks)
     value = get_input_value(input_value, variables, blocks)
-    return f'"{value}"' if not value.isdigit() else value
+    return f'{value}' if not value.isdigit() else value
 
 operator_map = {
     "operator_add": handle_add,
@@ -115,7 +144,7 @@ operator_map = {
     "operator_gt": handle_gt,
     "operator_lt": handle_lt,
     "operator_join": handle_join,
-    "operator_letter_of": handle_letter_of,
-    "operator_length": handle_length_of,
-    "operator_contains": handle_contains
+    "operator_mod": handle_mod,
+    "operator_round": handle_round,
+    "operator_mathop": handle_mathop
 }

@@ -89,6 +89,8 @@ def get_input_value(input_value, sprite_name, variables=None, blocks=None):
                 block = blocks[inner_value]
                 if block["opcode"] == "sensing_mousedown":
                     return "mousePressed()"
+                elif block["opcode"] in operators.operator_map:
+                    return operators.operator_map[block["opcode"]](block["inputs"], block["fields"], variables, blocks)
             return str(inner_value)
         return str(value)
     return "0"
@@ -112,12 +114,12 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
                 return operators.handle_random(block["inputs"], variables, blocks)
             if block["opcode"] == "operator_join":
                 return operators.handle_join(block["inputs"], variables, blocks)
-            if block["opcode"] == "operator_letter_of":
-                return operators.handle_letter_of(block["inputs"], variables, blocks)
-            if block["opcode"] == "operator_length":
-                return operators.handle_length_of(block["inputs"], variables, blocks)
-            if block["opcode"] == "operator_contains":
-                return operators.handle_contains(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_mod":
+                return operators.handle_mod(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_round":
+                return operators.handle_round(block["inputs"], variables, blocks)
+            if block["opcode"] == "operator_mathop":
+                return operators.handle_mathop(block["inputs"], block["fields"], variables, blocks)
             if block["opcode"] in booleans.boolean_map:
                 return booleans.boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operators.operator_map:

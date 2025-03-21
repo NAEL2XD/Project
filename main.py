@@ -4,7 +4,7 @@ import looks
 import control
 import sensing
 import operators
-import booleans
+import vars
 import os
 import shutil
 from traceback import format_exc
@@ -38,7 +38,7 @@ def extract_sb3_file(file_path, extract_to="extracted_sb3"):
 def sanitize_variable_name(var_name):
     return re.sub(r'\W|^(?=\d)', '_', var_name)
 
-def convert_blocks_to_lua(blocks, variables, sprite_name):
+def convert_blocks_to_lua(blocks, variables, lists, sprite_name):
     lua_code = []
     on_update_code = []
     line_count = 0
@@ -116,8 +116,15 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         "operator_mod": lambda inputs, fields: operators.handle_mod(inputs, variables, blocks, sprite_name),
         "operator_round": lambda inputs, fields: operators.handle_round(inputs, variables, blocks, sprite_name),
         "operator_mathop": lambda inputs, fields: operators.handle_mathop(inputs, fields, variables, blocks, sprite_name),
-        "data_setvariableto": lambda inputs, fields: handle_setvariableto(inputs, fields, sprite_name, variables, blocks),
-        "data_changevariableby": lambda inputs, fields: handle_changevariableby(inputs, fields, sprite_name, variables, blocks)
+        "data_setvariableto": lambda inputs, fields: vars.handle_setvariableto(inputs, fields, sprite_name, variables, blocks),
+        "data_changevariableby": lambda inputs, fields: vars.handle_changevariableby(inputs, fields, sprite_name, variables, blocks),
+        "data_addtolist": lambda inputs, fields: vars.handle_addtolist(inputs, fields, sprite_name, variables, blocks),
+        "data_deleteoflist": lambda inputs, fields: vars.handle_deleteoflist(inputs, fields, sprite_name, variables, blocks),
+        "data_deletealloflist": lambda inputs, fields: vars.handle_deletealloflist(fields, sprite_name),
+        "data_insertatlist": lambda inputs, fields: vars.handle_insertatlist(inputs, fields, sprite_name, variables, blocks),
+        "data_replaceitemoflist": lambda inputs, fields: vars.handle_replaceitemoflist(inputs, fields, sprite_name, variables, blocks),
+        "data_itemoflist": lambda inputs, fields: vars.handle_itemoflist(inputs, fields, sprite_name, variables, blocks),
+        "data_lengthoflist": lambda fields: vars.handle_lengthoflist(fields, sprite_name)
     }
 
     def process_block(block_id, target_code):
@@ -156,35 +163,6 @@ def convert_blocks_to_lua(blocks, variables, sprite_name):
         
         if block.get("next"):
             process_block(block["next"], target_code)
-
-    def handle_setvariableto(inputs, fields, sprite_name, variables, blocks):
-        variable_name = sanitize_variable_name(fields["VARIABLE"][0])
-        print(len(inputs["VALUE"]))
-        if len(inputs["VALUE"]) == 3:
-            if len(inputs["VALUE"][1]) == 3:
-                value = f'{sprite_name}.{variable_name}'
-            else:
-                value = operators.get_input_or_number_value(inputs["VALUE"], variables, blocks, sprite_name)
-            return f'{sprite_name}.{variable_name} = {value}'
-        else:
-            value = inputs["VALUE"][1]
-            if isinstance(value, list):
-                return f'{sprite_name}.{variable_name} = {value[1]}'
-            return f'{sprite_name}.{variable_name} = "{value}"'
-
-    def handle_changevariableby(inputs, fields, sprite_name, variables, blocks):
-        variable_name = sanitize_variable_name(fields["VARIABLE"][0])
-        if len(inputs["VALUE"]) == 3:
-            if len(inputs["VALUE"][1]) == 3:
-                value = f'{sprite_name}.{variable_name}'
-            else:
-                value = operators.get_input_or_number_value(inputs["VALUE"], variables, blocks, sprite_name)
-            return f'{sprite_name}.{variable_name} = {sprite_name}.{variable_name} + tonumber({value})'
-        else:
-            value = inputs["VALUE"][1]
-            if isinstance(value, list):
-                return f'{sprite_name}.{variable_name} = {sprite_name}.{variable_name} + {value[1]}'
-            return f'{sprite_name}.{variable_name} = {sprite_name}.{variable_name} + {value}'
 
     # Check for top-level blocks and process them
     has_green_flag = False
@@ -231,12 +209,29 @@ def convert_project_to_lua(project_path):
             sprite_name = target["name"]
             lua_scripts = [f'-- Sprite: {sprite_name}']
             
-            # Initialize variables
+            # Initialize variables and lists
             variables = {var_id: var_data[0] for var_id, var_data in target["variables"].items()}
+            lists = {}
+            for monitor in project["monitors"]:
+                if monitor["spriteName"] == sprite_name:
+                    lists[monitor['params']['LIST']] = monitor['value']
+                    id = monitor['id']
+
+                    try:
+                        list_val = str(target['lists'][id][1])
+                        lists[monitor['params']['LIST']] = list_val
+                    except Exception as e:
+                        print(e)
+                        continue
+
             lua_scripts.append(f'local {sprite_name} = {{')
             for var_name, var_value in variables.items():
                 sanitized_var_name = sanitize_variable_name(var_value)
                 lua_scripts.append(f'    {sanitized_var_name} = 0,')
+            for list_name, list_value in lists.items():
+                sanitized_list_name = sanitize_variable_name(list_name)
+                converted_list = str(list_value).replace('[', '{').replace(']', '}')
+                lua_scripts.append(f'    {sanitized_list_name} = {converted_list},')
             lua_scripts.append('}\n')
             
             # Handle sprite name with folder structure
@@ -244,7 +239,7 @@ def convert_project_to_lua(project_path):
             script_path = os.path.join(EXPORT_FOLDER, f"{sprite_name_path}.lua")
             os.makedirs(os.path.dirname(script_path), exist_ok=True)
 
-            lua_scripts.append(convert_blocks_to_lua(target["blocks"], variables, sprite_name))
+            lua_scripts.append(convert_blocks_to_lua(target["blocks"], variables, lists, sprite_name))
 
             lua_code = "\n".join(lua_scripts)
             with open(script_path, "w") as lua_file:

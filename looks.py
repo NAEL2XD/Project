@@ -1,9 +1,14 @@
 import sensing
 import booleans
 import operators
+import vars
+import main
 
 def handle_say(inputs, sprite_name, line_count, blocks, includes, variables):
     message = get_input_or_sensing_value(inputs["MESSAGE"], sprite_name, line_count, blocks, variables)
+    if len(inputs["MESSAGE"]) == 3:
+        listName = main.sanitize_variable_name(inputs["MESSAGE"][1][1])
+        message = f"{sprite_name}.{listName}"
     if "mouseOverlaps" in message:
         includes.add("mouseOverlaps")
     return f'debugPrint("{sprite_name}:{line_count}: " .. {message})'
@@ -103,7 +108,7 @@ def get_input_value(input_value, sprite_name, variables=None, blocks=None):
     return "0"
 
 def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, variables):
-    if isinstance(input_value, list) and len(input_value) > 1:
+    if isinstance(input_value, list) and len(input_value) > 2:
         block_id = input_value[1]
         if isinstance(block_id, str) and block_id in blocks:
             block = blocks[block_id]
@@ -131,6 +136,8 @@ def get_input_or_sensing_value(input_value, sprite_name, line_count, blocks, var
                 return booleans.boolean_map[block["opcode"]](block["inputs"], blocks)
             if block["opcode"] in operators.operator_map:
                 return operators.operator_map[block["opcode"]](block["inputs"], variables, blocks, sprite_name)
+            if block["opcode"] in vars.var_map:
+                return vars.var_map[block["opcode"]](block["inputs"], block["fields"], sprite_name, variables, blocks)
     value = get_input_value(input_value, sprite_name, blocks=blocks, variables=variables)
     return f'"{escape_quotes(value)}"'
 
